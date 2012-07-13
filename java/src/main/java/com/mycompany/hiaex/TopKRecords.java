@@ -1,5 +1,3 @@
-// $Id$
-// $Source$
 package com.mycompany.hiaex;
 
 import java.io.IOException;
@@ -27,8 +25,6 @@ import org.apache.hadoop.util.ToolRunner;
 
 /**
  * HIA 4.7.1 - Output Top cited patents.
- * @author Sujit Pal (spal@healthline.com)
- * @version $Revision$
  */
 public class TopKRecords extends Configured implements Tool {
 

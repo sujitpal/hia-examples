@@ -1,5 +1,3 @@
-// $Id$
-// $Source$
 package com.mycompany.hiaex;
 
 import java.util.ArrayList;
@@ -18,9 +16,7 @@ import org.junit.Test;
 
 
 /**
- * TODO: class level javadocs
- * @author Sujit Pal (spal@healthline.com)
- * @version $Revision$
+ * MRUnit test (doesn't work).
  */
 public class DotProductTest {
   

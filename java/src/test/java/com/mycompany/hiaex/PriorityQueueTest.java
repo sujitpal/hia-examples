@@ -1,5 +1,3 @@
-// $Id$
-// $Source$
 package com.mycompany.hiaex;
 
 import java.util.Comparator;
@@ -9,9 +7,7 @@ import java.util.PriorityQueue;
 import org.junit.Test;
 
 /**
- * TODO: class level javadocs
- * @author Sujit Pal (spal@healthline.com)
- * @version $Revision$
+ * Test for PriorityQueue API.
  */
 public class PriorityQueueTest {
 

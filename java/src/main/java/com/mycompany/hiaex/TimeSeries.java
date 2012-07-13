@@ -1,5 +1,3 @@
-// $Id$
-// $Source$
 package com.mycompany.hiaex;
 
 import java.io.IOException;
@@ -27,8 +25,6 @@ import org.apache.hadoop.util.ToolRunner;
 
 /**
  * HIA 4.7.4 - Time series.
- * @author Sujit Pal (spal@healthline.com)
- * @version $Revision$
  */
 public class TimeSeries extends Configured implements Tool {
 

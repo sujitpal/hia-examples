@@ -1,5 +1,3 @@
-// $Id$
-// $Source$
 package com.mycompany.hiaex;
 
 import java.io.IOException;
@@ -24,8 +22,6 @@ import org.apache.hadoop.util.ToolRunner;
 
 /**
  * HIA 4.7.3 - Dot product of two sparse matrices.
- * @author Sujit Pal (spal@healthline.com)
- * @version $Revision$
  */
 public class DotProduct extends Configured implements Tool {
 

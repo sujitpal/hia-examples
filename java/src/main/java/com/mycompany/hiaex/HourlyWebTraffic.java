@@ -1,5 +1,3 @@
-// $Id$
-// $Source$
 package com.mycompany.hiaex;
 
 import java.io.IOException;
@@ -27,8 +25,6 @@ import org.apache.hadoop.util.ToolRunner;
 
 /**
  * HIA 4.7.2 - Hourly Web Traffic from Tomcat logs.
- * @author Sujit Pal (spal@healthline.com)
- * @version $Revision$
  */
 public class HourlyWebTraffic extends Configured implements Tool {
 
