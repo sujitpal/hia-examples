@@ -1,7 +1,6 @@
 package com.mycompany.hiaex;
 
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.PriorityQueue;
 
 import org.junit.Test;

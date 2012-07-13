@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry including="**/*.java" kind="src" path="src/main/java"/>
+	<classpathentry including="**/*.java" kind="src" output="target/test-classes" path="src/test/java"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/hadoop/hadoop-core/1.0.3/hadoop-core-1.0.3.jar"/>
+	<classpathentry kind="var" path="M2_REPO/junit/junit/4.0/junit-4.0.jar" sourcepath="M2_REPO/junit/junit/4.0/junit-4.0-sources.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/mockito/mockito-all/1.8.5/mockito-all-1.8.5.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/mrunit/0.9.0-incubating/mrunit-0.9.0-incubating.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
