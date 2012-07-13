@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="hiaex" default="package" basedir=".">
+  <import file="maven-build.xml"/>
+  <target name="help">
+    <echo message="Please run: $ant -projecthelp"/>
+  </target>
+  <target name="fatjar" depends="compile" description="Build Hadoop Fat JAR">
+    <!--
+    <mkdir todir="${maven.build.dir}/lib"/>
+    <copy todir="${maven.build.dir}/lib">
+      <fileset dir="${maven.repo.local}">
+        <include file="org/apache/hadoop/hadoop-core/1.0.3/hadoop-core-1.0.3.jar"/>
+      </fileset>
+    </copy>
+    -->
+    <jar jarfile="${maven.build.dir}/${maven.build.finalName}-fatjar.jar"
+      basedir="${maven.build.outputDir}" excludes="**/package.html"/>
+  </target>
+</project>
