@@ -3,6 +3,10 @@
 	<classpathentry including="**/*.java" kind="src" path="src/main/java"/>
 	<classpathentry including="**/*.java" kind="src" output="target/test-classes" path="src/test/java"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/hadoop/hadoop-core/1.0.3/hadoop-core-1.0.3.jar"/>
+        <classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.4/commons-lang-2.4.jar"/>
+        <classpathentry kind="var" path="M2_REPO/log4j/log4j/1.2.15/log4j-1.2.15.jar"/>
+        <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.4.3/slf4j-api-1.4.3.jar"/>
+        <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-log4j12/1.4.3/slf4j-log4j12-1.4.3.jar"/>
 	<classpathentry kind="var" path="M2_REPO/junit/junit/4.0/junit-4.0.jar" sourcepath="M2_REPO/junit/junit/4.0/junit-4.0-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/mockito/mockito-all/1.8.5/mockito-all-1.8.5.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/mrunit/0.9.0-incubating/mrunit-0.9.0-incubating.jar"/>

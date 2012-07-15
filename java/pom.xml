@@ -15,10 +15,33 @@
   </properties>
 
   <dependencies>
+    <!-- all dependencies present in hadoop lib so we can get away
+         without creating a real fatjar, but in case we need something
+         thats not included we can create a fatjar with build.xml -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
       <version>1.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.15</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.4.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.4.3</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
