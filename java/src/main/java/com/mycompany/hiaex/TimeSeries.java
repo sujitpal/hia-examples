@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -29,10 +30,12 @@ import org.apache.hadoop.util.ToolRunner;
 public class TimeSeries extends Configured implements Tool {
 
   private static final int N = 5;
-  
+  private static final long NRECS = 1500L;
+
   public static class Mapper1 extends 
       Mapper<LongWritable,Text,LongWritable,DoubleWritable> {
     
+    private AtomicLong lno = new AtomicLong(0L);
     private Queue<Double> readings = new ArrayBlockingQueue<Double>(N);
     
     @Override
@@ -40,9 +43,10 @@ public class TimeSeries extends Configured implements Tool {
         Context ctx) throws IOException, InterruptedException {
       readings.add(Double.valueOf(value.toString()));
       if (readings.size() == N) {
+        LongWritable currkey = new LongWritable(lno.incrementAndGet());
         for (Iterator<Double> it = readings.iterator(); it.hasNext(); ) {
           Double reading = it.next();
-          ctx.write(key, new DoubleWritable(reading));
+          ctx.write(currkey, new DoubleWritable(reading));
         }
         readings.remove();
       }
@@ -69,7 +73,7 @@ public class TimeSeries extends Configured implements Tool {
 
     @Override
     public int getPartition(LongWritable key, DoubleWritable value, int numPartitions) {
-      return ((int) key.get()) % numPartitions;
+      return (int) Math.ceil(key.get() * numPartitions / NRECS);
     }
   }
   
@@ -97,11 +101,10 @@ public class TimeSeries extends Configured implements Tool {
   
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
-      System.out.println("Usage: TimeSeries /path/to/input output_dir");
+      System.out.println("Usage: TimeSeries -Dinput.nrecs=num_recs /path/to/input output_dir");
       System.exit(-1);
     }
     int res = ToolRunner.run(new Configuration(), new TimeSeries(), args);
     System.exit(res);
   }
-
 }
