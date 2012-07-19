@@ -33,7 +33,7 @@ public class MatrixMultiplyVector extends Configured implements Tool {
   public static class Mapper1 extends 
       Mapper<LongWritable,Text,LongWritable,DoubleWritable> {
     
-    Map<Long,Double> vector = new HashMap<Long,Double>();
+    private Map<Long,Double> vector = new HashMap<Long,Double>();
     
     @Override
     protected void setup(Context ctx) 
