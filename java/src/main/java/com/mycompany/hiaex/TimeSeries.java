@@ -6,6 +6,7 @@ import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -30,7 +31,6 @@ import org.apache.hadoop.util.ToolRunner;
 public class TimeSeries extends Configured implements Tool {
 
   private static final int N = 5;
-  private static final long NRECS = 1500L;
 
   public static class Mapper1 extends 
       Mapper<LongWritable,Text,LongWritable,DoubleWritable> {
@@ -69,19 +69,34 @@ public class TimeSeries extends Configured implements Tool {
     }
   }
   
-  public static class Partitioner1 extends Partitioner<LongWritable,DoubleWritable> {
+  public static class Partitioner1 
+      extends Partitioner<LongWritable,DoubleWritable>
+      implements Configurable {
+
+    private Configuration conf;
+    
+    @Override
+    public Configuration getConf() {
+      return conf;
+    }
+
+    @Override
+    public void setConf(Configuration conf) {
+      this.conf = conf;
+    }
 
     @Override
     public int getPartition(LongWritable key, DoubleWritable value, int numPartitions) {
-      return (int) Math.ceil(key.get() * numPartitions / NRECS);
+      return (int) Math.ceil(key.get() * numPartitions / conf.getInt("NRECS", numPartitions));
     }
   }
   
   public int run(String[] args) throws Exception {
     Configuration conf = getConf();
+    conf.set("NRECS", args[1]);
     Job job = new Job(conf, "timeseries");
     FileInputFormat.addInputPath(job, new Path(args[0]));
-    FileOutputFormat.setOutputPath(job, new Path(args[1]));
+    FileOutputFormat.setOutputPath(job, new Path(args[2]));
     job.setJarByClass(TimeSeries.class);
     job.setMapperClass(Mapper1.class);
     job.setReducerClass(Reducer1.class);
@@ -100,8 +115,8 @@ public class TimeSeries extends Configured implements Tool {
   }
   
   public static void main(String[] args) throws Exception {
-    if (args.length != 2) {
-      System.out.println("Usage: TimeSeries -Dinput.nrecs=num_recs /path/to/input output_dir");
+    if (args.length != 3) {
+      System.out.println("Usage: TimeSeries /path/to/input num_recs output_dir");
       System.exit(-1);
     }
     int res = ToolRunner.run(new Configuration(), new TimeSeries(), args);
