@@ -26,12 +26,7 @@ import org.apache.hadoop.util.ToolRunner;
 /**
  * HIA 5.4.6 - Spatial Join
  * Find points within Euclidean distance 1 of each other in
- * a 2-D space where (x,y) is (-1B..1B, -1B..1B). The approach
- * we use is to divide the space into squares of 100x100 and
- * do semi-join (map-side filtering with reduce-side join).
- * TODO: class level javadocs
- * @author Sujit Pal (spal@healthline.com)
- * @version $Revision$
+ * a 2-D space where (x,y) is (-1B..1B, -1B..1B).
  */
 public class SpatialJoin extends Configured implements Tool {
 
