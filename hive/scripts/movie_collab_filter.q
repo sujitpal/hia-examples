@@ -1,7 +1,8 @@
-/*
- * movie_collab_filter.q
- * Builds up a table of similar movie pairs ordered by count.
- */
+--
+-- movie_collab_filter.q
+-- Builds up a table of similar movie pairs ordered by count.
+--
+
 -- Create table to hold input data and load input data
 -- Output:
 -- 1	100	4	20120724
@@ -14,13 +15,13 @@ CREATE TABLE ratings (uid INT, mid INT, rating INT, tstamp INT)
   ROW FORMAT DELIMITED                             
   FIELDS TERMINATED BY '\t'
   STORED AS TEXTFILE;
-LOAD DATA LOCAL INPATH '/tmp/ml-ratings.dat' OVERWRITE INTO TABLE ratings;
+LOAD DATA LOCAL INPATH '/tmp/test.txt' OVERWRITE INTO TABLE ratings;
 
 -- Only use ratings which are > 3
 CREATE TABLE ratings2 (uid INT, mid INT);
 INSERT OVERWRITE TABLE ratings2
   SELECT uid, mid FROM ratings
-  WHERE ratings > 3;
+  WHERE rating > 3;
 
 -- For each (uid,mid) pair, find all users who have the same mid
 -- Then for each such record, find all movies with the same uid.
@@ -47,10 +48,10 @@ INSERT OVERWRITE TABLE ratings2
 -- 100	200
 -- 100	200
 CREATE TABLE mid_pairs (mid INT, rmid INT);
-INSERT OVERWRITE TABLE mid_pairs
-  SELECT a.mid, c.mid
-  FROM ratings2 a JOIN ratings b ON (a.mid = b.mid)
-                 JOIN ratings c ON (b.uid = c.uid);
+INSERT OVERWRITE TABLE mid_pairs 
+  SELECT a.mid, c.mid 
+  FROM ratings2 a JOIN ratings2 b ON (a.mid = b.mid) 
+                  JOIN ratings2 c ON (b.uid = c.uid);
 
 -- Eliminate pairs where the source and related mid are identical.
 CREATE TABLE mid_pairs2 (mid INT, rmid INT);
@@ -68,7 +69,11 @@ INSERT OVERWRITE TABLE mid_pairs2
 -- 300	200	1
 CREATE TABLE mid_counts (mid INT, rmid INT, cnt INT);
 INSERT OVERWRITE TABLE mid_counts
-  SELECT mid_pairs.mid, mid_pairs.rmid, COUNT(mid_pairs.rmid)
+  SELECT mid, rmid, COUNT(rmid)
   FROM mid_pairs2
-  GROUP BY mid_pairs.mid, mid_pairs.rmid;
+  GROUP BY mid, rmid;
+
+DROP TABLE ratings2;
+DROP TABLE mid_pairs;
+DROP TABLE mid_pairs2;
 
