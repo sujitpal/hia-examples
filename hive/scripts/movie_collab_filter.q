@@ -24,7 +24,6 @@ INSERT OVERWRITE TABLE ratings2
 
 -- For each (uid,mid) pair, find all users who have the same mid
 -- Then for each such record, find all movies with the same uid.
--- Only consider ratings > 3 and where mid != rmid.
 -- Output:
 -- 100	200
 -- 100	300
