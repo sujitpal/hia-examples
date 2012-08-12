@@ -61,5 +61,5 @@ class Part5(args : Args) extends Job(args) {
         tfCount * Math.log(nDocs / (1.0 + dfCount))
     }.
     project('docId, 'tf_word, 'tfidf).
-  	write(output)
+    write(output)
 }
