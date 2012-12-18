@@ -22,9 +22,11 @@ libraryDependencies += "com.twitter" % "maple" % "0.2.2"
 
 libraryDependencies += "commons-lang" % "commons-lang" % "2.4"
 
-libraryDependencies += "org.scala-tools.testing" % "specs_2.8.1" % "1.6.6" % "test"
-
 // scalding (locally build)
 
 libraryDependencies += "com.twitter" % "scalding_2.9.2" % "0.7.3"
 
+libraryDependencies += "org.specs2" % "specs2_2.9.2" % "1.12.1"
+
+// Invocation exception if we try to run the tests in parallel
+parallelExecution in Test := false
