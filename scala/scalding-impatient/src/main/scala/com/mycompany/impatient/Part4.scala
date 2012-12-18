@@ -3,6 +3,16 @@ package com.mycompany.impatient
 import com.twitter.scalding._
 import cascading.pipe.joiner.LeftJoin
 
+object Part4 {
+  def main(args: Array[String]) {
+    (new Part4(Args(List("--local", "", "--input", "data/rain.txt", "--output", "data/output.txt", "--stop", "data/en.stop")))).run
+
+    import io.Source
+    for (line <- Source.fromFile("data/output.txt").getLines())
+      println(line)
+  }
+}
+
 /**
  * Scala version of "Cascading for the Impatient, Part IV"
  * Article: http://www.cascading.org/2012/07/24/cascading-for-the-impatient-part-4/

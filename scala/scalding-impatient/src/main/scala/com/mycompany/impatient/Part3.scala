@@ -2,6 +2,16 @@ package com.mycompany.impatient
 
 import com.twitter.scalding._
 
+object Part3 {
+  def main(args: Array[String]) {
+    (new Part3(Args(List("--local", "", "--input", "data/rain.txt", "--output", "data/output.txt")))).run
+
+    import io.Source
+    for (line <- Source.fromFile("data/output.txt").getLines())
+      println(line)
+  }
+}
+
 /**
  * Scalding version of "Cascading for the Impatient, Part III"
  * Article: http://www.cascading.org/2012/07/17/cascading-for-the-impatient-part-3/
