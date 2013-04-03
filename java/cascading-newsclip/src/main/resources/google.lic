@@ -1,0 +1,4 @@
+# google auth key
+key=__put_your_google_api_key_here__
+# custom search
+cx=__put_your_google_custom_search_cx_value_here__
