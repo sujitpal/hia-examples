@@ -1,0 +1,66 @@
+apply plugin: "java"
+apply plugin: "idea"
+apply plugin: "eclipse"
+apply plugin: "application"
+
+mainClassName = System.getProperty("mainClass")
+
+archivesBaseName = "kevinbacon"
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+  mavenRepo name: "conjars", url: "http://conjars.org/repo/"
+}
+
+configurations {
+  provided
+  compile.extendsFrom provided
+}
+
+ext.cascadingVer = "2.1.6"
+
+dependencies {
+  compile(group: "cascading", name: "cascading-core", version: cascadingVer)
+  compile(group: "cascading", name: "cascading-local", version: cascadingVer)
+  compile(group: "cascading", name: "cascading-hadoop", version: cascadingVer)
+  provided(group: "org.apache.hadoop", name: "hadoop-core", version: "1.0.3")
+  testCompile(group: "cascading", name: "cascading-platform", 
+              version: cascadingVer)
+  testCompile("org.apache.hadoop:hadoop-test:1.0.3")
+  testCompile("cascading:cascading-test:2.0.8")
+  testCompile("junit:junit:4.8.+")
+  testCompile("org.slf4j:slf4j-api:1.7.2")
+  testCompile("commons-io:commons-io:2.1")
+  testRuntime("org.slf4j:slf4j-log4j12:1.7.2")
+  testRuntime("log4j:log4j:1.2.16")
+}
+
+test {
+  testLogging.showStandardStreams = true
+  beforeTest {
+    descriptor -> logger.lifecycle("Running test: " + descriptor)
+  }
+  onOutput {
+    descriptor, event ->
+      logger.lifecycle("Test " + descriptor + " produced error: " + 
+        event.message)
+  }
+}
+
+jar {
+  description = "Assembles a JAR file"
+  from {
+    (configurations.runtime - configurations.provided).collect {
+      it.isDirectory() ? it : zipTree(it)
+    }
+  }
+  {
+    exclude "META-INF/*.SF"
+    exclude "META-INF/*.DSA"
+    exclude "META-INF/*.RSA"
+  }
+  manifest {
+    attributes("Main-Class": "com.mycompany.kevinbacon.flow.Main")
+  }
+}
