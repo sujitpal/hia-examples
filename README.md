@@ -11,6 +11,10 @@ java/cascading-newsclip
 -----------------------
 An automated newspaper clipping service using Cascading.
 
+java/cascading-kevinbacon
+-------------------------
+Cascading implementation of the Degrees of Separation from Kevin Bacon problem.
+
 scala/impatient
 ---------------
 Scalding version of Parts 1-5 of Paco Nathan's [Cascading for the Impatient](http://www.cascading.org/category/impatient/).
