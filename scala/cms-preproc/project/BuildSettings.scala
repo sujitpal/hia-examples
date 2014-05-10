@@ -44,7 +44,7 @@ object BuildSettings {
         "minlog-1.2.jar", // Otherwise causes conflicts with Kyro (which bundles it)
         "janino-2.5.16.jar", // Janino includes a broken signature, and is not needed anyway
         "commons-beanutils-core-1.8.0.jar", // Clash with each other and with commons-collections
-        "commons-beanutils-1.7.0.jar",      // "
+        "commons-beanutils-1.7.0.jar",     // "
         "hadoop-core-0.20.2.jar", // Provided by Amazon EMR. Delete this line if you're not on EMR
         "hadoop-tools-0.20.2.jar" // "
       ) 

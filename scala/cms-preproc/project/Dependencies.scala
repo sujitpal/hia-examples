@@ -14,7 +14,6 @@ import sbt._
 
 object Dependencies {
   val resolutionRepos = Seq(
-    //ScalaToolsSnapshots,
     "ScalaTools snapshots at Sonatype" at "https://oss.sonatype.org/content/repositories/snapshots/",
     "Concurrent Maven Repo" at "http://conjars.org/repo" // For Scalding, Cascading etc
   )
