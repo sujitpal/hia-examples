@@ -1,4 +1,4 @@
-package com.mycompany.cmspp
+package com.mycompany.cmspp.preproc
 
 object Schemas {
   val BenefitSummary = List(

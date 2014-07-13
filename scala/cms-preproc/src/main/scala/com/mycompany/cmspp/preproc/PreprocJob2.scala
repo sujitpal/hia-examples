@@ -1,7 +1,6 @@
-package com.mycompany.cmspp
+package com.mycompany.cmspp.preproc
 
 import scala.io.Source
-
 import com.twitter.scalding.Args
 import com.twitter.scalding.Csv
 import com.twitter.scalding.Job
