@@ -20,7 +20,7 @@ object BuildSettings {
     organization  := "MyCompany, Inc.",
     version       := "0.1.0",
     description   := "Template Project File",
-    scalaVersion  := "2.10.0", // -> 2.10.0 when Scalding is ready
+    scalaVersion  := "2.10.4", // -> 2.10.0 when Scalding is ready
     scalacOptions := Seq("-deprecation", "-encoding", "utf8"),
     resolvers     ++= Dependencies.resolutionRepos
   )
