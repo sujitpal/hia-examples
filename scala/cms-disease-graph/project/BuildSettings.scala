@@ -17,9 +17,9 @@ object BuildSettings {
 
   // Basic settings for our app
   lazy val basicSettings = Seq[Setting[_]](
-    organization  := "com.snowplowanalytics",
-    version       := "0.2.0",
-    description   := "Simple word count job for the Spark cluster computing platform, ready for Amazon EMR",
+    organization  := "com.mycompany",
+    version       := "0.1.0",
+    description   := "Data Analysis of Claims Data to produce Disease Graph",
     scalaVersion  := "2.10.4",
     scalacOptions := Seq("-deprecation", "-encoding", "utf8"),
     resolvers     ++= Dependencies.resolutionRepos

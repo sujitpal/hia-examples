@@ -13,7 +13,7 @@
 import sbt._
 import Keys._
 
-object SparkExampleProjectBuild extends Build {
+object ProjectBuild extends Build {
 
   import Dependencies._
   import BuildSettings._
@@ -30,8 +30,9 @@ object SparkExampleProjectBuild extends Build {
       libraryDependencies ++= Seq(
         Libraries.sparkCore,
         Libraries.guava,
-        Libraries.specs2
         // Add your additional libraries here (comma-separated)...
+        Libraries.junit,
+        Libraries.junitInterface
       )
     )
 }

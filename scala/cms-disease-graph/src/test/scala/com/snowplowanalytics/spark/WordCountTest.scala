@@ -14,37 +14,27 @@ package com.snowplowanalytics.spark
 
 // Java
 import java.io.{FileWriter, File}
-
-// Scala
 import scala.io.Source
-
-// Google Guava
 import com.google.common.io.Files
+import org.junit.Test
+import org.junit.Assert
 
-// Specs2
-import org.specs2.mutable.Specification
+class WordCountTest {
 
-class WordCountTest extends Specification {
-
-  "A WordCount job" should {
-
-    "count words correctly" in {
-
-      val tempDir = Files.createTempDir()
-      val inputFile = new File(tempDir, "input").getAbsolutePath
-      val inWriter = new FileWriter(inputFile)
-      inWriter.write("hack hack hack and hack")
-      inWriter.close
-      val outputDir = new File(tempDir, "output").getAbsolutePath
-
-      WordCount.execute(
-        master = "local",
-        args   = List(inputFile, outputDir)
-      )
-
-      val outputFile = new File(outputDir, "part-00000")
-      val actual = Source.fromFile(outputFile).mkString
-      actual must_== "(hack,4)\n(and,1)\n"
-    }
+  @Test
+  def testCountWordsCorrectly() {
+    val tempDir = Files.createTempDir()
+    val inputFile = new File(tempDir, "input").getAbsolutePath()
+    val inWriter = new FileWriter(inputFile)
+    inWriter.write("hack hack hack and hack")
+    inWriter.close()
+    val outputDir = new File(tempDir, "output").getAbsolutePath()
+    WordCount.execute(
+      master = "local", 
+      args = List(inputFile, outputDir)
+    )
+    val outputFile = new File(outputDir, "part-00000")
+    val actual = Source.fromFile(outputFile).mkString
+    Assert.assertEquals(actual, "(hack,4)\n(and,1)\n")
   }
 }

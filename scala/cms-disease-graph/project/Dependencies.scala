@@ -19,18 +19,20 @@ object Dependencies {
   )
 
   object V {
-    val spark     = "1.1.0"
-    val specs2    = "1.13"
-    val guava     = "11.0.1"
+    val spark = "1.1.0"
+    val guava = "11.0.1"
     // Add versions for your additional libraries here...
+    val junit = "4.11" 
+    val junitInterface = "0.8"
   }
 
   object Libraries {
-    val sparkCore    = "org.apache.spark"           %% "spark-core"            % V.spark        % "provided"
+    val sparkCore = "org.apache.spark" %% "spark-core" % V.spark % "provided"
     // Add additional libraries from mvnrepository.com (SBT syntax) here...
 
     // Scala (test only)
-    val specs2       = "org.specs2"                 % "specs2_2.10"           % V.specs2       % "test"
-    val guava        = "com.google.guava"           % "guava"                  % V.guava        % "test"
+    val guava = "com.google.guava" % "guava" % V.guava % "test"
+    val junit = "junit" % "junit" % V.junit % "test"
+    val junitInterface = "com.novocode" % "junit-interface" % V.junitInterface % "test"
   }
 }
