@@ -19,6 +19,14 @@ scala/impatient
 ---------------
 Scalding version of Parts 1-5 of Paco Nathan's [Cascading for the Impatient](http://www.cascading.org/category/impatient/).
 
+scala/cms-preproc
+-----------------
+Data analysis with Scalding on Medicare Claims data from cms.gov to find code outliers, etc.
+
+scala/cms-disease-graph
+-----------------------
+Data analysis with Apache Spark to compute a disease graph for diseases identified as comorbidities among members. Uses Medicare Claims data from cms.gov.
+
 pig/scripts
 ------------
 Pig script examples from HIA.
