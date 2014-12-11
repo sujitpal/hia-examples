@@ -11,14 +11,15 @@ import org.junit.AfterClass
 
 class GraphDataGeneratorTest {
 
-
+  val TestName = "GraphDataGeneratorTest"
+    
   @Test
   def testDedupMemberInfo(): Unit = {
     val infile = "src/test/resources/member_dup.csv"
     val outdir = "src/test/resources/outputs_1"
     forceDeleteIfExists(outdir)
     val sc = new SparkContext(
-      "local", "GraphDataGeneratorTest", null, null)
+      "local", TestName, null, null)
     try {
       val input = sc.textFile(infile)
       val output = GraphDataGenerator.dedupMemberInfo(input)
@@ -42,7 +43,7 @@ class GraphDataGeneratorTest {
     val outdir = "src/test/resources/outputs_2"
     forceDeleteIfExists(outdir)
     val sc = new SparkContext(
-      "local", "GraphDataGeneratorTest", null, null)
+      "local", TestName, null, null)
     try {
       val input = sc.textFile(infile)
         .map(line => {
@@ -67,7 +68,7 @@ class GraphDataGeneratorTest {
     val outdir = "src/test/resources/outputs_3"
     forceDeleteIfExists(outdir)
     val sc = new SparkContext(
-      "local", "GraphDataGeneratorTest", null, null)
+      "local", TestName, null, null)
     try {
       val input = sc.textFile(infile)
       val output = GraphDataGenerator.normalizeClaimInfo(
@@ -92,7 +93,7 @@ class GraphDataGeneratorTest {
     val outdir = "src/test/resources/outputs_4"
     forceDeleteIfExists(outdir)
     val sc = new SparkContext(
-      "local", "GraphDataGeneratorTest", null, null)
+      "local", TestName, null, null)
     try {
       val input = sc.textFile(infile)
       val output = GraphDataGenerator.normalizeClaimInfo(
@@ -117,7 +118,7 @@ class GraphDataGeneratorTest {
     val outdir = "src/test/resources/outputs_5"
     forceDeleteIfExists(outdir)
     val sc = new SparkContext(
-      "local", "GraphDataGeneratorTest", null, null)
+      "local", TestName, null, null)
     try {
       val members = sc.textFile(minfile)
         .map(line => {
@@ -146,7 +147,7 @@ class GraphDataGeneratorTest {
     val outdir = "src/test/resources/outputs_6"
     forceDeleteIfExists(outdir)
     val sc = new SparkContext(
-      "local", "GraphDataGeneratorTest", null, null)
+      "local", TestName, null, null)
     try {
       val dcpairs = sc.textFile(infile)
         .map(line => {
