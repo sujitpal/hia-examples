@@ -1,6 +1,10 @@
+# Draws a disease interaction chart (based on common procedures for treatment)
+# Adapted from:
+# https://www.udacity.com/wiki/creating-network-graphs-with-python
+
 import networkx as nx
 import matplotlib.pyplot as plt
-import sys
+import os
 
 def draw_graph(G, labels=None, graph_layout='shell',
                node_size=1600, node_color='blue', node_alpha=0.3,
@@ -35,27 +39,32 @@ def draw_graph(G, labels=None, graph_layout='shell',
 
     plt.show()
 
+def add_node_to_graph(G, node, node_labels):
+    if node not in node_labels:
+        G.add_node(node)
+    node_labels.add(node)
 
-datafile = "../../../src/test/resources/disease_disease_pairs.csv"
+datadir = "../../../src/test/resources/final_outputs/diseases"
+lines = []
+for datafile in os.listdir(datadir):
+    if datafile.startswith("part-"):
+        fin = open(os.path.join(datadir, datafile), 'rb')
+        for line in fin:
+            disease_1, disease_2, weight = line.strip().split(",")
+            lines.append((disease_1, disease_2, float(weight)))
+        fin.close()
 
-# first pass: find the max weight to normalize against
-fin = open(datafile, 'rb')
-max_weight = -sys.maxint
-for line in fin:
-    weight = float(line.strip().split(",")[2])
-    if weight > max_weight:
-        max_weight = weight
-fin.close()
+max_weight = max([x[2] for x in lines])
+norm_lines = map(lambda x: (x[0], x[1], x[2] / max_weight), lines)
 
-# second pass: construct the graph
 G = nx.Graph()
 edge_labels = dict()
-fin = open(datafile, 'rb')
-for line in fin:
-    cols = line.strip().split(",")
-    edge_weight = float(cols[2]) * 100 / max_weight
-    G.add_edge(cols[0], cols[1], weight = edge_weight)
-    edge_labels[(cols[0], cols[1])] = "%d" % (int(edge_weight))
-fin.close()
+node_labels = set()
+for line in norm_lines:
+    add_node_to_graph(G, line[0], node_labels)
+    add_node_to_graph(G, line[1], node_labels)
+    if line[2] > 0.3:
+        G.add_edge(line[0], line[1], weight=line[2])
+        edge_labels[(line[0], line[1])] = "%.2f" % (line[2])
 draw_graph(G, labels=edge_labels, graph_layout="shell")
 
