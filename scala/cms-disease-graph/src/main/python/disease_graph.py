@@ -34,6 +34,7 @@ def draw_graph(G, labels=None, graph_layout='shell',
                                  label_pos=edge_text_pos)
     # show graph
     frame = plt.gca()
+    plt.gcf().set_size_inches(10, 10)
     frame.axes.get_xaxis().set_visible(False)
     frame.axes.get_yaxis().set_visible(False)
 
@@ -44,15 +45,13 @@ def add_node_to_graph(G, node, node_labels):
         G.add_node(node)
     node_labels.add(node)
 
-datadir = "../../../src/test/resources/final_outputs/diseases"
+datafile = "../../../data/disease_disease_pairs_final.csv"
 lines = []
-for datafile in os.listdir(datadir):
-    if datafile.startswith("part-"):
-        fin = open(os.path.join(datadir, datafile), 'rb')
-        for line in fin:
-            disease_1, disease_2, weight = line.strip().split(",")
-            lines.append((disease_1, disease_2, float(weight)))
-        fin.close()
+fin = open(os.path.join(datafile), 'rb')
+for line in fin:
+    disease_1, disease_2, weight = line.strip().split("\t")
+    lines.append((disease_1, disease_2, float(weight)))
+fin.close()
 
 max_weight = max([x[2] for x in lines])
 norm_lines = map(lambda x: (x[0], x[1], x[2] / max_weight), lines)

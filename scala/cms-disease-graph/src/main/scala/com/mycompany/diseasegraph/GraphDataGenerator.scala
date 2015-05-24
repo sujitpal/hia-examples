@@ -4,9 +4,11 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkConf
 
-class GraphDataGenerator {
+import SparkContext._
 
-	// column number => comorbidity
+object GraphDataGenerator {
+
+	// column number => comorbidity in benefits_summary
 	val ColumnDiseaseMap = Map(
 		12 -> "ALZM",
 		13 -> "CHF",
@@ -35,172 +37,144 @@ Usage: GraphDataGeneratorJob \
 			val sc = new SparkContext(conf)
 
 			// permissions to read and write data on S3
-//			sc.hadoopConfiguration.set("fs.s3.awsAccessKeyId", sys.env("AWS_ACCESS_KEY"))
-//			sc.hadoopConfiguration.set("fs.s3.awsSecretAccessKey", sys.env("AWS_SECRET_KEY"))
+			sc.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", sys.env("AWS_ACCESS_KEY"))
+			sc.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", sys.env("AWS_SECRET_KEY"))
 
 			// dedupe member so only record with highest number of
 			// comorbidities is retained
 			val membersDeduped = sc.textFile(args(0))
+				// remove heading line (repeats)
 				.filter(line => ! line.startsWith("\""))
+				// extract (memberId, [comorbidity_indicators])
+				.map(line => {
+					val cols = line.split(",")
+					val memberId = cols(0)
+					val comorbs = ColumnDiseaseMap.keys.toList.sorted
+						.map(e => cols(e).toInt)
+					(memberId, comorbs)
+				})
+				.reduceByKey((v1, v2) => {
+					// 1 == Yes, 2 == No
+					val v1size = v1.filter(_ == 1).size
+					val v2size = v2.filter(_ == 1).size
+					if (v1size > v2size) v1 else v2
+				})
+				// normalize to (member_id, (disease, weight)) 
+				.flatMap(x => {
+					val diseases = x._2.zipWithIndex
+					  .filter(di => di._1 == 1) // retain only Yes
+					  .map(di => ColumnDiseaseMap(di._2 + 12)) 
+					val weight = 1.0 / diseases.size
+					diseases.map(disease => (x._1, (disease, weight)))
+				})
 
-			Console.println(membersDeduped)
-			val count = membersDeduped.count()
-			Console.println(count)
+			// normalize inpatient and outpatient claims to 
+			// (member_id, (code, weight))
+			val inpatientClaims = sc.textFile(args(1))
+				// remove heading line (repeats)
+			  	.filter(line => ! line.startsWith("\""))
+			  	// extracts (member_id:claims_id, proc_codes)
+			  	.map(line => {
+			  		val cols = line.split(",")
+			  		val memberId = cols(0)
+			  		val claimsId = cols(1)
+			  		val procCodes = cols.slice(30, 35)
+			  		  .filter(pc => ! pc.isEmpty())
+			  		val memberClaimId = Array(memberId, claimsId).mkString(":")
+			  		(memberClaimId, procCodes)
+			  	})
+			  	// remove encounters with no procedure codes (they
+			  	// may have other codes we are not interested in)
+			  	.filter(claimProcs => claimProcs._2.size > 0)
+			  	// find list of procedures done per encounter
+			  	.groupByKey()
+			  	// reweight codes per encounter. If many codes were
+			  	// administered, then weigh them lower (assuming doctors
+			  	// have limited time per patient, so more codes mean
+			  	// that each code is less important - this assumption is
+			  	// not necessarily correct, but lets go with it).
+			  	.flatMap(grouped => {
+			  		val memberId = grouped._1.split(":")(0)
+			  		val codes = grouped._2.flatMap(x => x).toList
+			  		val weight = 1.0 / codes.size
+			  		codes.map(code => (memberId, (code, weight)))
+			  	})
+			  	
+			val outpatientClaims = sc.textFile(args(1))
+			  	.filter(line => ! line.startsWith("\""))
+			  	.map(line => {
+			  		val cols = line.split(",")
+			  		val memberId = cols(0)
+			  		val claimsId = cols(1)
+			  		val procCodes = cols.slice(31, 75)
+			  		  .filter(pc => ! pc.isEmpty())
+			  		val memberClaimId = Array(memberId, claimsId).mkString(":")
+			  		(memberClaimId, procCodes)
+			  	})
+			  	.filter(claimProcs => claimProcs._2.size > 0)
+			  	.groupByKey()
+			  	.flatMap(grouped => {
+			  		val memberId = grouped._1.split(":")(0)
+			  		val codes = grouped._2.flatMap(x => x).toList
+			  		val weight = 1.0 / codes.size
+			  		codes.map(code => (memberId, (code, weight)))
+			  	})
+			  	
+			// combine the two RDDs into one
+			inpatientClaims.union(outpatientClaims)
+
+			// join membersDeduped and inpatientClaims on member_id
+			// to get (code, (disease, weight))
+			val codeDisease = membersDeduped.join(inpatientClaims)
+				.map(joined => {
+					val disease = joined._2._1._1
+					val procCode = joined._2._2._1
+					val weight = joined._2._1._2 * joined._2._2._2
+					(Array(disease, procCode).mkString(":"), weight)
+				})
+				// combine weights for same disease + procedure code
+				.reduceByKey(_ + _)
+				// key by procedure code for self join
+				.map(reduced => {
+					val Array(disease, procCode) = reduced._1.split(":")
+					(procCode, (disease, reduced._2))
+				})
+				.cache()
+				
+			// save a copy for future analysis
+			codeDisease.map(x => "%s\t%s\t%.5f".format(x._2._1, x._1, x._2._2))
+				.saveAsTextFile(args(3))
 			
+			// finally self join on procedure code. The idea is to 
+			// compute the relationship between diseases by the weighted
+			// sum of procedures that have been observed to have been 
+			// done for people with the disease
+			val diseaseDisease = codeDisease.join(codeDisease)
+				// eliminate cases where LHS == RHS
+				.filter(dd => ! dd._2._1._1.equals(dd._2._2._1))
+				// compute disease-disease relationship weights
+				.map(dd => {
+					val lhsDisease = dd._2._1._1
+					val rhsDisease = dd._2._2._1
+					val diseases = Array(lhsDisease, rhsDisease).sorted
+					val weight = dd._2._1._2 * dd._2._2._2
+					(diseases.mkString(":"), weight)
+				})
+				// combine the disease pair weights
+				.reduceByKey(_ + _)
+				// bring it into a single file for convenience
+				.coalesce(1, false)
+				// sort them (purely cosmetic reasons, and they should
+				// be small enough at this point to make this feasible
+				.sortByKey()
+				// split it back out for rendering
+				.map(x => {
+					val diseases = x._1.split(":")
+					"%s\t%s\t%.5f".format(diseases(0), diseases(1), x._2)
+				})
+				.saveAsTextFile(args(4))
+
 			sc.stop()
 		}
 	}
-
 }	
-	
-
-//	def execute(master: String, args: List[String], 
-//				jars: Seq[String]=Nil): Unit = {
-//
-//		if (args.size != 5) {
-//			Console.println("got %d".format(args.size))
-//		} else {
-//
-//			val sc = new SparkContext(master, AppName, null, jars)
-//
-//
-//			// dedup member so the record with the highest number
-//			// of comorbidities is retained
-//			val membersDeduped = sc.textFile(args(0))
-////				// remove header line
-////				.filter(line => ! line.startsWith("\""))
-////				// extract (memberId, [comorbidity_indicators])
-////				.map(line => {
-////					val cols = line.split(",")
-////					val memberId = cols(0)
-////					val comorbs = columnDiseaseMap.keys.toList.sorted
-////						.map(e => cols(e).toInt)
-////					(memberId, comorbs)
-////				})
-////				// dedupe on memberId, returning the record with
-////				// the largest number of comorbidities. Intuition
-////				// here is that we want most info about member in 
-////				// terms of disease
-////				.reduceByKey((v1, v2) => {
-////					// 1 == Yes, 2 == No
-////					val v1size = v1.filter(_ == 1).size
-////					val v2size = v2.filter(_ == 1).size
-////					if (v1size > v2size) v1 else v2
-////
-////				})
-//			
-//			// normalize member to (member_id,(disease,weight))
-////			val membersNormalized = normalizeMemberInfo(membersDeduped)
-//
-//			Console.println("size(membersDeduped)=%d".format(membersDeduped.count))
-////			Console.println("size(membersNormalized)=%d".format(membersNormalized.count))
-//					
-////			// normalize inpatient and outpatient claims to 
-////			// (member_id,(code,weight))
-////			// This involves grouping by (member_id, claim_id) and
-////			// computing the code weights, then removing claim_id.
-////			// Codes used in inpatient claims are ICD-9 and the
-////			// ones used for outpatient claims are HCPCS
-////			val claimsNormalized = 
-////				normalizeClaimInfo(sc.textFile(args(1)), (30, 35)) ++
-////				normalizeClaimInfo(sc.textFile(args(2)), (31, 75))
-////
-////			// join the membersNormalized and claimsNormalized RDDs
-////			// on memberId to get mapping of disease to code
-////			// membersNormalized: (member_id, (disease, d_weight))
-////			// claimsNormalized: (member_id, (code, c_weight))
-////			// diseaseCodes: (disease, code, weight)
-////			val diseaseCodes = joinMembersWithClaims(
-////				membersNormalized, claimsNormalized)
-////			diseaseCodes.map(t => format(t)).saveAsTextFile(args(3))
-////
-////			// finally do a self join with the diseaseCodes RDD joining
-////			// on code to compute a measure of disease-disease similarity
-////			// by the weight of the shared procedure codes to produce
-////			// (disease_A, disease_B, weight)
-////			val diseaseAllPairs = selfJoinDisease(diseaseCodes)
-////			diseaseAllPairs.map(t => format(t)).saveAsTextFile(args(4))
-//		}
-//	}
-
-//	def format(t: (String,String,Double)): String = {
-//		"%s,%s,%.3f".format(t._1, t._2, t._3)
-//	}
-//
-//	def normalizeMemberInfo(input: RDD[(String,List[String])]): 
-//			RDD[(String,(String,Double))]= {
-//		input.flatMap(elem => {
-//			val diseases = elem._2.zipWithIndex
-//				.map(di => if (di._1.toInt == 1) columnDiseaseMap(di._2 + 12) else "")
-//				.filter(d => ! d.isEmpty())
-//					val weight = 1.0 / diseases.size
-//					diseases.map(disease => (elem._1, (disease, weight)))
-//		})
-//	}
-//
-//	def normalizeClaimInfo(input: RDD[String], 
-//			pcodeIndex: (Int,Int)): RDD[(String,(String,Double))] = {
-//		input.filter(line => ! line.startsWith("\""))
-//			.flatMap(line => {
-//				val cols = line.split(",")
-//				val memberId = cols(0)
-//				val claimId = cols(1)
-//				val procCodes = cols.slice(pcodeIndex._1, pcodeIndex._2)
-//				procCodes.filter(pcode => ! pcode.isEmpty)
-//					.map(pcode => ("%s:%s".format(memberId, claimId), pcode))
-//			})
-//			.groupByKey()
-//			.flatMap(grouped => {
-//				val memberId = grouped._1.split(":")(0)
-//				val weight = 1.0 / grouped._2.size
-//				val codes = grouped._2.toList
-//				codes.map(code => {
-//					(memberId, (code, weight))
-//				})
-//		})
-//	}
-//
-//	def joinMembersWithClaims(members: RDD[(String,(String,Double))],
-//			claims: RDD[(String,(String,Double))]): 
-//			RDD[(String,String,Double)] = {
-//		members.join(claims)
-//			.map(rec => {
-//				val disease = rec._2._1._1
-//				val code = rec._2._2._1
-//				val weight = rec._2._1._2 * rec._2._2._2
-//				(List(disease, code).mkString(":"), weight)
-//			})
-//			.reduceByKey(_ + _)
-//			.sortByKey(true)
-//			.map(kv => {
-//				val Array(k,v) = kv._1.split(":")
-//				(k, v, kv._2)
-//		})
-//	}
-//
-//	def selfJoinDisease(dcs: RDD[(String,String,Double)]): 
-//			RDD[(String,String,Double)] = {
-//		val dcsKeyed = dcs.map(t => (t._2, (t._1, t._3)))
-//		dcsKeyed.join(dcsKeyed)
-//			// join on code and compute edge weight 
-//			// between disease pairs
-//			.map(rec => {
-//				val ldis = rec._2._1._1
-//				val rdis = rec._2._2._1
-//				val diseases = Array(ldis, rdis).sorted
-//				val weight = rec._2._1._2 * rec._2._2._2
-//				(diseases(0), diseases(1), weight)
-//			})
-//			// filter out cases where LHS == RHS
-//			.filter(t => ! t._1.equals(t._2))
-//			// group on (LHS + RHS)
-//			.map(t => (List(t._1, t._2).mkString(":"), t._3))
-//			.reduceByKey(_ + _)
-//			.sortByKey(true)
-//			// convert back to triple format
-//			.map(p => {
-//				val Array(lhs, rhs) = p._1.split(":")
-//				(lhs, rhs, p._2)
-//		})
-//	}
-//}
